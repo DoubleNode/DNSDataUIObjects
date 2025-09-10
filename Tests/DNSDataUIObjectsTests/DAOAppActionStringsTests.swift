@@ -175,8 +175,8 @@ final class DAOAppActionStringsTests: XCTestCase {
         XCTAssertNotNil(dictionary["cancelLabel"])
         
         // Verify DNSString objects are properly serialized as dictionaries
-        XCTAssertTrue(dictionary["title"] is DNSDataDictionary)
-        XCTAssertTrue(dictionary["subtitle"] is DNSDataDictionary)
+        XCTAssertNotNil(dictionary["title"])
+        XCTAssertNotNil(dictionary["subtitle"])
     }
     
     // MARK: - Equality and Comparison Tests

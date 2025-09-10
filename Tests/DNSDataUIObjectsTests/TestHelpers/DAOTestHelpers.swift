@@ -185,15 +185,42 @@ struct DAOTestHelpers {
     }
     
     static func createMockAppActionImagesDictionary() -> DNSDataDictionary {
-        return createMockBaseObjectDictionary(id: "images123")
+        var baseDict = createMockBaseObjectDictionary(id: "images123")
+        baseDict.merge([
+            "top": DNSURL(with: URL(string: "https://example.com/mock-top.jpg"))
+        ]) { (current, _) in current }
+        return baseDict
     }
     
     static func createMockAppActionStringsDictionary() -> DNSDataDictionary {
-        return createMockBaseObjectDictionary(id: "strings123")
+        var baseDict = createMockBaseObjectDictionary(id: "strings123")
+        baseDict.merge([
+            "title": ["value": "Mock Title"],
+            "subtitle": ["value": "Mock Subtitle"],
+            "description": ["value": "Mock Body Description"],
+            "disclaimer": ["value": "Mock Disclaimer"],
+            "okayLabel": ["value": "OK"],
+            "cancelLabel": ["value": "Cancel"]
+        ]) { (current, _) in current }
+        return baseDict
     }
     
     static func createMockAppActionThemesDictionary() -> DNSDataDictionary {
-        return createMockBaseObjectDictionary(id: "themes123")
+        var baseDict = createMockBaseObjectDictionary(id: "themes123")
+        
+        let cancelButtonDict: DNSDataDictionary = [
+            "name": "dict-cancel-button"
+        ]
+        
+        let okayButtonDict: DNSDataDictionary = [
+            "name": "dict-okay-button"
+        ]
+        
+        baseDict.merge([
+            "cancelButton": cancelButtonDict,
+            "okayButton": okayButtonDict
+        ]) { (current, _) in current }
+        return baseDict
     }
     
     static func createMockPromotionDictionary(id: String = "promotion123") -> DNSDataDictionary {
