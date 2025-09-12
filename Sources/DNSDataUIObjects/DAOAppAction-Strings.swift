@@ -147,8 +147,7 @@ open class DAOAppActionStrings: DAOBaseObject, DecodingConfigurationProviding, E
         guard self !== rhs else { return false }
         guard !super.isDiffFrom(rhs) else { return true }
         let lhs = self
-        return super.isDiffFrom(rhs) ||
-            lhs.body != rhs.body ||
+        return lhs.body != rhs.body ||
             lhs.cancelLabel != rhs.cancelLabel ||
             lhs.disclaimer != rhs.disclaimer ||
             lhs.okayLabel != rhs.okayLabel ||

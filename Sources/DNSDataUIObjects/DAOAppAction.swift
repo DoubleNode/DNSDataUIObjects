@@ -208,8 +208,7 @@ open class DAOAppAction: DAOBaseObject, DecodingConfigurationProviding, Encoding
         guard self !== rhs else { return false }
         guard !super.isDiffFrom(rhs) else { return true }
         let lhs = self
-        return super.isDiffFrom(rhs)
-            || lhs.actionType != rhs.actionType
+        return lhs.actionType != rhs.actionType
             || lhs.deepLink != rhs.deepLink
             || lhs.images != rhs.images
             || lhs.strings != rhs.strings

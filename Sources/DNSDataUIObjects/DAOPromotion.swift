@@ -232,8 +232,7 @@ open class DAOPromotion: DAOBaseObject, DecodingConfigurationProviding, Encoding
         guard self !== rhs else { return false }
         guard !super.isDiffFrom(rhs) else { return true }
         let lhs = self
-        return super.isDiffFrom(rhs) ||
-            (lhs.action?.isDiffFrom(rhs.action) ?? (lhs.action != rhs.action)) ||
+        return (lhs.action?.isDiffFrom(rhs.action) ?? (lhs.action != rhs.action)) ||
             lhs.mediaItems.hasDiffElementsFrom(rhs.mediaItems) ||
             lhs.body != rhs.body ||
             lhs.disclaimer != rhs.disclaimer ||

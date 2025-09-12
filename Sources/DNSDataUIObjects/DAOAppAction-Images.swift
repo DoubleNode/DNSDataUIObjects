@@ -94,8 +94,8 @@ open class DAOAppActionImages: DAOBaseObject, DecodingConfigurationProviding, En
         try self.commonInit(from: decoder, configuration: configuration)
     }
     private func commonInit(from decoder: Decoder, configuration: Config) throws {
-//        let container = try decoder.container(keyedBy: CodingKeys.self)
-//        topUrl = self.dnsurl(from: container, forKey: .topUrl) ?? topUrl
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        topUrl = self.dnsurl(from: container, forKey: .topUrl) ?? topUrl
     }
     override open func encode(to encoder: Encoder, configuration: DAOBaseObject.Config) throws {
         try self.encode(to: encoder, configuration: Self.config)
@@ -116,8 +116,7 @@ open class DAOAppActionImages: DAOBaseObject, DecodingConfigurationProviding, En
         guard self !== rhs else { return false }
         guard !super.isDiffFrom(rhs) else { return true }
         let lhs = self
-        return super.isDiffFrom(rhs) ||
-            lhs.topUrl != rhs.topUrl
+        return lhs.topUrl != rhs.topUrl
     }
 
     // MARK: - Equatable protocol methods -

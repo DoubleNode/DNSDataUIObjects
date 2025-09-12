@@ -48,9 +48,11 @@ open class DNSMediaDisplayAnimatedImage: DNSMediaDisplayStaticImage {
                       cacheKey: url.absoluteString + Date().dnsDateTime(as: .fullSimple),
                       placeholderImage: placeholderImage,
                       progress: { (progress) in
-                        self.progressView?.setProgress(Float(progress.fractionCompleted),
-                                                       animated: true)
-                        self.progressView?.isHidden = (progress.fractionCompleted >= 1.0)
+                        Task { @MainActor in
+                            self.progressView?.setProgress(Float(progress.fractionCompleted),
+                                                           animated: true)
+                            self.progressView?.isHidden = (progress.fractionCompleted >= 1.0)
+                        }
                       },
                       imageTransition: UIImageView.ImageTransition.crossDissolve(0.2),
                       completion: { response in

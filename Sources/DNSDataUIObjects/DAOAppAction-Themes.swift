@@ -103,7 +103,8 @@ open class DAOAppActionThemes: DAOBaseObject, DecodingConfigurationProviding, En
     }
     private func commonInit(from decoder: Decoder, configuration: Config) throws {
 //        let container = try decoder.container(keyedBy: CodingKeys.self)
-//        topUrl = self.dnsurl(from: container, forKey: .topUrl) ?? topUrl
+//        cancelButton = self.dnsThemeButtonStyle(from: container, forKey: .cancelButton) ?? cancelButton
+//        okayButton = self.dnsThemeButtonStyle(from: container, forKey: .okayButton) ?? okayButton
     }
     override open func encode(to encoder: Encoder, configuration: DAOBaseObject.Config) throws {
         try self.encode(to: encoder, configuration: Self.config)
@@ -125,8 +126,7 @@ open class DAOAppActionThemes: DAOBaseObject, DecodingConfigurationProviding, En
         guard self !== rhs else { return false }
         guard !super.isDiffFrom(rhs) else { return true }
         let lhs = self
-        return super.isDiffFrom(rhs)
-            || lhs.cancelButton != rhs.cancelButton
+        return lhs.cancelButton != rhs.cancelButton
             || lhs.okayButton != rhs.okayButton
     }
 
