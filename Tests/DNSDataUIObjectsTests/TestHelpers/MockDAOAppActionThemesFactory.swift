@@ -7,10 +7,10 @@
 //
 
 import XCTest
-import DNSBaseTheme
 import DNSCore
 import DNSDataObjects
 import DNSDataTypes
+import DNSThemeTypes
 import Foundation
 @testable import DNSDataUIObjects
 

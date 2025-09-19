@@ -6,9 +6,9 @@
 //  Copyright © 2025 - 2016 DoubleNode.com. All rights reserved.
 //
 
-import DNSBaseTheme
 import DNSCore
 import DNSDataObjects
+import DNSThemeTypes
 import Foundation
 
 public protocol PTCLCFGDAOAppActionThemes: PTCLCFGBaseObject {

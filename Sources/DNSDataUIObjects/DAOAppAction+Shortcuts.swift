@@ -6,8 +6,8 @@
 //  Copyright © 2025 - 2016 DoubleNode.com. All rights reserved.
 //
 
-import DNSBaseTheme
 import DNSCore
+import DNSThemeTypes
 import Foundation
 
 public extension DAOAppAction {

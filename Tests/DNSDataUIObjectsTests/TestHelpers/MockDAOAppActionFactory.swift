@@ -6,9 +6,9 @@
 //  Copyright © 2025 - 2016 DoubleNode.com. All rights reserved.
 //
 
-import DNSBaseTheme
 import DNSCore
 import DNSDataTypes
+import DNSThemeTypes
 import Foundation
 @testable import DNSDataUIObjects
 

@@ -15,7 +15,7 @@ let package = Package(
         .iOS(.v16),
         .tvOS(.v16),
         .macCatalyst(.v16),
-//        .macOS(.v13),
+        .macOS(.v13),
         .watchOS(.v9),
     ],
     products: [
@@ -27,33 +27,31 @@ let package = Package(
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
-        .package(url: "https://github.com/Alamofire/Alamofire.git", from: "5.10.2"),
-        .package(url: "https://github.com/Alamofire/AlamofireImage.git", from: "4.3.0"),
-//        .package(url: "https://github.com/DoubleNode/DNSBaseTheme.git", from: "1.12.0"),
-//        .package(url: "https://github.com/DoubleNode/DNSCore.git", from: "1.12.0"),
-//        .package(url: "https://github.com/DoubleNode/DNSCoreThreading.git", from: "1.12.0"),
-//        .package(url: "https://github.com/DoubleNode/DNSDataContracts.git", from: "1.12.0"),
-//        .package(url: "https://github.com/DoubleNode/DNSDataObjects.git", from: "1.12.0"),
-//        .package(url: "https://github.com/DoubleNode/DNSDataTypes.git", from: "1.12.0"),
-//        .package(url: "https://github.com/DoubleNode/DNSError.git", from: "1.12.0"),
-        .package(path: "../DNSBaseTheme"),
-        .package(path: "../DNSCore"),
-        .package(path: "../DNSCoreThreading"),
-        .package(path: "../DNSDataContracts"),
-        .package(path: "../DNSDataObjects"),
-        .package(path: "../DNSDataTypes"),
-        .package(path: "../DNSError"),
-        .package(url: "https://github.com/kaishin/Gifu.git", from: "3.1.2"),
-        .package(url: "https://github.com/dgrzeszczak/KeyedCodable.git", from: "3.1.2"),
+        .package(url: "https://github.com/Alamofire/AlamofireImage.git", .upToNextMajor(from: "4.3.0")),
+        .package(url: "https://github.com/DoubleNode/DNSCore.git", .upToNextMajor(from: "1.12.0")),
+        .package(url: "https://github.com/DoubleNode/DNSCoreThreading.git", .upToNextMajor(from: "1.12.0")),
+        .package(url: "https://github.com/DoubleNode/DNSDataContracts.git", .upToNextMajor(from: "1.12.0")),
+        .package(url: "https://github.com/DoubleNode/DNSDataObjects.git", .upToNextMajor(from: "1.12.0")),
+        .package(url: "https://github.com/DoubleNode/DNSDataTypes.git", .upToNextMajor(from: "1.12.0")),
+        .package(url: "https://github.com/DoubleNode/DNSError.git", .upToNextMajor(from: "1.12.0")),
+        .package(url: "https://github.com/DoubleNode/DNSThemeTypes.git", .upToNextMajor(from: "1.12.0")),
+//        .package(path: "../DNSCore"),
+//        .package(path: "../DNSCoreThreading"),
+//        .package(path: "../DNSDataContracts"),
+//        .package(path: "../DNSDataObjects"),
+//        .package(path: "../DNSDataTypes"),
+//        .package(path: "../DNSError"),
+//        .package(path: "../DNSThemeTypes"),
+        .package(url: "https://github.com/kaishin/Gifu.git", .upToNextMajor(from: "4.0.1")),
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
         // Targets can depend on other targets in this package, and on products in packages which this package depends on.
         .target(
             name: "DNSDataUIObjects",
-            dependencies: ["Alamofire", "AlamofireImage", "DNSBaseTheme", "DNSCore", "DNSCoreThreading",
+            dependencies: ["AlamofireImage", "DNSCore", "DNSCoreThreading",
                            "DNSDataContracts", "DNSDataObjects", "DNSDataTypes", "DNSError",
-                           "Gifu", "KeyedCodable"]
+                           "DNSThemeTypes", "Gifu"]
         ),
         .testTarget(
             name: "DNSDataUIObjectsTests",

@@ -61,10 +61,14 @@ open class DNSMediaDisplayAnimatedImage: DNSMediaDisplayStaticImage {
                         DNSUIThread.run(after: 0.5) {
                             self.secondaryImageViews.forEach { $0.image = nil }
                             guard let imageData = response.data else {
-                                imageView.startAnimatingGIF()
+                                Task { @MainActor in
+                                    imageView.startAnimatingGIF()
+                                }
                                 return
                             }
-                            imageView.animate(withGIFData: imageData)
+                            Task { @MainActor in
+                                imageView.animate(withGIFData: imageData)
+                            }
                         }
                       })
     }
@@ -72,6 +76,8 @@ open class DNSMediaDisplayAnimatedImage: DNSMediaDisplayStaticImage {
         super.utilityDisplayPrepareForReuse(videoOnly: videoOnly)
         guard videoOnly else { return }
         guard let imageView = self.imageView as? GIFImageView else { return }
-        imageView.prepareForReuse()
+        Task { @MainActor in
+            imageView.prepareForReuse()
+        }
     }
 }
