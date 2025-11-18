@@ -245,28 +245,20 @@ open class DAOPromotionAnalytics: DAOBaseObject, DecodingConfigurationProviding,
 
     // MARK: - Helper methods for nested structs
     private func period(from data: DNSDataDictionary) -> Period {
-        let dateFormatter = ISO8601DateFormatter()
-
         var period = Period()
-
-        if let startString = data["start"] as? String,
-           let startDate = dateFormatter.date(from: startString) {
+        if let startDate = self.date(from: data["start"] as? String) {
             period.start = startDate
         }
-
-        if let endString = data["end"] as? String,
-           let endDate = dateFormatter.date(from: endString) {
+        if let endDate = self.date(from: data["end"] as? String) {
             period.end = endDate
         }
-
         return period
     }
 
     private func periodAsDictionary(_ period: Period) -> DNSDataDictionary {
-        let dateFormatter = ISO8601DateFormatter()
         return [
-            "start": dateFormatter.string(from: period.start),
-            "end": dateFormatter.string(from: period.end)
+            "start": period.start,
+            "end": period.end,
         ]
     }
 
@@ -276,16 +268,24 @@ open class DAOPromotionAnalytics: DAOBaseObject, DecodingConfigurationProviding,
         metrics.totalViews = data["totalViews"] as? Int ?? 0
         metrics.totalTaps = data["totalTaps"] as? Int ?? 0
 
-        if let viewsByPlatformData = data["viewsByPlatform"] as? DNSDataDictionary {
-            metrics.viewsByPlatform = self.platformBreakdown(from: viewsByPlatformData)
-        }
+        let viewsByPlatformData = self.dictionary(from: data["viewsByPlatform"] as Any?)
+        metrics.viewsByPlatform = self.platformBreakdown(from: viewsByPlatformData)
 
-        if let tapsByPlatformData = data["tapsByPlatform"] as? DNSDataDictionary {
-            metrics.tapsByPlatform = self.platformBreakdown(from: tapsByPlatformData)
-        }
+        let tapsByPlatformData = self.dictionary(from: data["tapsByPlatform"] as Any?)
+        metrics.tapsByPlatform = self.platformBreakdown(from: tapsByPlatformData)
 
-        if let timelineData = data["timeline"] as? [DNSDataDictionary] {
-            metrics.timeline = timelineData.map { self.timelineEntry(from: $0) }
+        // timeline is expected to be an array of dictionaries
+        if let timelineArray = data["timeline"] as? [DNSDataDictionary] {
+            metrics.timeline = timelineArray.map { self.timelineEntry(from: $0) }
+        } else if let timelineAnyArray = data["timeline"] as? [Any] {
+            // Fallback: coerce any-array into DNSDataDictionary array
+            metrics.timeline = timelineAnyArray.compactMap { self.dictionary(from: $0) }.map { self.timelineEntry(from: $0) }
+        } else if let timelineDict = self.dictionary(from: data["timeline"] as Any?) as DNSDataDictionary?,
+                  !timelineDict.isEmpty {
+            // Some APIs might incorrectly send a single object instead of an array
+            metrics.timeline = [self.timelineEntry(from: timelineDict)]
+        } else {
+            metrics.timeline = []
         }
 
         return metrics
@@ -303,8 +303,8 @@ open class DAOPromotionAnalytics: DAOBaseObject, DecodingConfigurationProviding,
 
     private func platformBreakdown(from data: DNSDataDictionary) -> PlatformBreakdown {
         return PlatformBreakdown(
-            ios: data["ios"] as? Int ?? 0,
-            android: data["android"] as? Int ?? 0
+            ios: self.int(from: data["ios"] as Any?) ?? 0,
+            android: self.int(from: data["android"] as Any?) ?? 0
         )
     }
 
@@ -317,9 +317,9 @@ open class DAOPromotionAnalytics: DAOBaseObject, DecodingConfigurationProviding,
 
     private func timelineEntry(from data: DNSDataDictionary) -> TimelineEntry {
         return TimelineEntry(
-            period: data["period"] as? String ?? "",
-            views: data["views"] as? Int ?? 0,
-            taps: data["taps"] as? Int ?? 0
+            period: self.string(from: data["period"] as Any?) ?? "",
+            views: self.int(from: data["views"] as Any?) ?? 0,
+            taps: self.int(from: data["taps"] as Any?) ?? 0
         )
     }
 
@@ -331,3 +331,4 @@ open class DAOPromotionAnalytics: DAOBaseObject, DecodingConfigurationProviding,
         ]
     }
 }
+
