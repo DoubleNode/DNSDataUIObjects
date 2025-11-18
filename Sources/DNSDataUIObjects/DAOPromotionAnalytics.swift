@@ -74,6 +74,7 @@ open class DAOPromotionAnalytics: DAOBaseObject, DecodingConfigurationProviding,
         public var totalTaps = 0
         public var viewsByPlatform = PlatformBreakdown()
         public var tapsByPlatform = PlatformBreakdown()
+        public var byScreen: [String: ScreenMetrics] = [:]
         public var timeline: [TimelineEntry] = []
 
         public init() {}
@@ -82,6 +83,24 @@ open class DAOPromotionAnalytics: DAOBaseObject, DecodingConfigurationProviding,
         public var engagementRate: Double {
             guard totalViews > 0 else { return 0.0 }
             return Double(totalTaps) / Double(totalViews)
+        }
+    }
+
+    public struct ScreenMetrics: Codable, Hashable {
+        public var views: Int = 0
+        public var taps: Int = 0
+
+        public init() {}
+
+        public init(views: Int, taps: Int) {
+            self.views = views
+            self.taps = taps
+        }
+
+        /// Calculated engagement rate for this screen
+        public var engagementRate: Double {
+            guard views > 0 else { return 0.0 }
+            return Double(taps) / Double(views)
         }
     }
 
@@ -274,6 +293,15 @@ open class DAOPromotionAnalytics: DAOBaseObject, DecodingConfigurationProviding,
         let tapsByPlatformData = self.dictionary(from: data["tapsByPlatform"] as Any?)
         metrics.tapsByPlatform = self.platformBreakdown(from: tapsByPlatformData)
 
+        // Parse byScreen data if available (when includeScreens=1)
+        let byScreenData = self.dictionary(from: data["byScreen"] as Any?)
+        var screenMetrics: [String: ScreenMetrics] = [:]
+        for (screenName, screenData) in byScreenData {
+            let screenDict = self.dictionary(from: screenData)
+            screenMetrics[screenName] = self.screenMetrics(from: screenDict)
+        }
+        metrics.byScreen = screenMetrics
+
         // timeline is expected to be an array of dictionaries
         if let timelineArray = data["timeline"] as? [DNSDataDictionary] {
             metrics.timeline = timelineArray.map { self.timelineEntry(from: $0) }
@@ -292,12 +320,31 @@ open class DAOPromotionAnalytics: DAOBaseObject, DecodingConfigurationProviding,
     }
 
     private func metricsAsDictionary(_ metrics: Metrics) -> DNSDataDictionary {
+        var byScreenDict: [String: DNSDataDictionary] = [:]
+        for (screenName, screenData) in metrics.byScreen {
+            byScreenDict[screenName] = self.screenMetricsAsDictionary(screenData)
+        }
         return [
             "totalViews": metrics.totalViews,
             "totalTaps": metrics.totalTaps,
             "viewsByPlatform": self.platformBreakdownAsDictionary(metrics.viewsByPlatform),
             "tapsByPlatform": self.platformBreakdownAsDictionary(metrics.tapsByPlatform),
+            "byScreen": byScreenDict,
             "timeline": metrics.timeline.map { self.timelineEntryAsDictionary($0) }
+        ]
+    }
+
+    private func screenMetrics(from data: DNSDataDictionary) -> ScreenMetrics {
+        return ScreenMetrics(
+            views: self.int(from: data["views"] as Any?) ?? 0,
+            taps: self.int(from: data["taps"] as Any?) ?? 0
+        )
+    }
+
+    private func screenMetricsAsDictionary(_ metrics: ScreenMetrics) -> DNSDataDictionary {
+        return [
+            "views": metrics.views,
+            "taps": metrics.taps
         ]
     }
 
