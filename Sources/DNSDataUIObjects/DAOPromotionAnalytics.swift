@@ -49,12 +49,14 @@ open class DAOPromotionAnalytics: DAOBaseObject, DecodingConfigurationProviding,
     // MARK: - Properties -
     private func field(_ from: CodingKeys) -> String { return from.rawValue }
     public enum CodingKeys: String, CodingKey {
-        case promotion, period, metrics
+        case promotion, period, previousPeriod, metrics, trends
     }
 
     @CodableConfiguration(from: DAOPromotion.self) open var promotion: DAOPromotion? = nil
     public var period = Period()
+    public var previousPeriod: Period?
     public var metrics = Metrics()
+    public var trends: Trends?
 
     // MARK: - Nested Types
     public struct Period: Codable, Hashable {
@@ -136,6 +138,41 @@ open class DAOPromotionAnalytics: DAOBaseObject, DecodingConfigurationProviding,
         }
     }
 
+    public struct Trends: Codable, Hashable {
+        public var views: TrendMetric = TrendMetric()
+        public var taps: TrendMetric = TrendMetric()
+        public var engagement: TrendMetric = TrendMetric()
+
+        public init() {}
+
+        public init(views: TrendMetric, taps: TrendMetric, engagement: TrendMetric) {
+            self.views = views
+            self.taps = taps
+            self.engagement = engagement
+        }
+    }
+
+    public struct TrendMetric: Codable, Hashable {
+        public var current: Double = 0
+        public var previous: Double = 0
+        public var change: Double = 0
+        public var direction: String = "up"
+
+        public init() {}
+
+        public init(current: Double, previous: Double, change: Double, direction: String) {
+            self.current = current
+            self.previous = previous
+            self.change = change
+            self.direction = direction
+        }
+
+        /// Whether the trend is positive (up)
+        public var isPositive: Bool {
+            return direction == "up"
+        }
+    }
+
     // MARK: - Initializers
     required public init() {
         super.init()
@@ -161,6 +198,8 @@ open class DAOPromotionAnalytics: DAOBaseObject, DecodingConfigurationProviding,
        super.update(from: object)
        self.metrics = object.metrics
        self.period = object.period
+       self.previousPeriod = object.previousPeriod
+       self.trends = object.trends
        // swiftlint:disable force_cast
        self.promotion = object.promotion?.copy() as? DAOPromotion
        // swiftlint:enable force_cast
@@ -185,8 +224,14 @@ open class DAOPromotionAnalytics: DAOBaseObject, DecodingConfigurationProviding,
         if let periodData = data[field(.period)] as? DNSDataDictionary {
             self.period = self.period(from: periodData)
         }
+        if let previousPeriodData = data[field(.previousPeriod)] as? DNSDataDictionary {
+            self.previousPeriod = self.period(from: previousPeriodData)
+        }
         if let metricsData = data[field(.metrics)] as? DNSDataDictionary {
             self.metrics = self.metrics(from: metricsData)
+        }
+        if let trendsData = data[field(.trends)] as? DNSDataDictionary {
+            self.trends = self.trends(from: trendsData)
         }
         return self
     }
@@ -201,6 +246,16 @@ open class DAOPromotionAnalytics: DAOBaseObject, DecodingConfigurationProviding,
             field(.period): self.periodAsDictionary(self.period),
             field(.metrics): self.metricsAsDictionary(self.metrics),
         ]) { current, _ in current }
+        if let previousPeriod = self.previousPeriod {
+            retval.merge([
+                field(.previousPeriod): self.periodAsDictionary(previousPeriod),
+            ]) { current, _ in current }
+        }
+        if let trends = self.trends {
+            retval.merge([
+                field(.trends): self.trendsAsDictionary(trends),
+            ]) { current, _ in current }
+        }
         return retval
     }
 
@@ -226,7 +281,9 @@ open class DAOPromotionAnalytics: DAOBaseObject, DecodingConfigurationProviding,
         let container = try decoder.container(keyedBy: CodingKeys.self)
         promotion = self.daoPromotion(with: configuration, from: container, forKey: .promotion) ?? promotion
         period = try container.decodeIfPresent(Period.self, forKey: .period) ?? period
+        previousPeriod = try container.decodeIfPresent(Period.self, forKey: .previousPeriod)
         metrics = try container.decodeIfPresent(Metrics.self, forKey: .metrics) ?? metrics
+        trends = try container.decodeIfPresent(Trends.self, forKey: .trends)
     }
     override open func encode(to encoder: Encoder, configuration: DAOBaseObject.Config) throws {
         try self.encode(to: encoder, configuration: Self.config)
@@ -236,7 +293,9 @@ open class DAOPromotionAnalytics: DAOBaseObject, DecodingConfigurationProviding,
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(promotion, forKey: .promotion, configuration: configuration)
         try container.encode(period, forKey: .period)
+        try container.encodeIfPresent(previousPeriod, forKey: .previousPeriod)
         try container.encode(metrics, forKey: .metrics)
+        try container.encodeIfPresent(trends, forKey: .trends)
     }
 
     // MARK: - NSCopying protocol methods -
@@ -251,7 +310,9 @@ open class DAOPromotionAnalytics: DAOBaseObject, DecodingConfigurationProviding,
         let lhs = self
         return (lhs.promotion?.isDiffFrom(rhs.promotion) ?? (lhs.promotion != rhs.promotion)) ||
             lhs.period != rhs.period ||
-            lhs.metrics != rhs.metrics
+            lhs.previousPeriod != rhs.previousPeriod ||
+            lhs.metrics != rhs.metrics ||
+            lhs.trends != rhs.trends
     }
 
     // MARK: - Equatable protocol methods -
@@ -375,6 +436,48 @@ open class DAOPromotionAnalytics: DAOBaseObject, DecodingConfigurationProviding,
             "period": entry.period,
             "views": entry.views,
             "taps": entry.taps
+        ]
+    }
+
+    private func trends(from data: DNSDataDictionary) -> Trends {
+        var trends = Trends()
+
+        if let viewsData = data["views"] as? DNSDataDictionary {
+            trends.views = self.trendMetric(from: viewsData)
+        }
+        if let tapsData = data["taps"] as? DNSDataDictionary {
+            trends.taps = self.trendMetric(from: tapsData)
+        }
+        if let engagementData = data["engagement"] as? DNSDataDictionary {
+            trends.engagement = self.trendMetric(from: engagementData)
+        }
+
+        return trends
+    }
+
+    private func trendsAsDictionary(_ trends: Trends) -> DNSDataDictionary {
+        return [
+            "views": self.trendMetricAsDictionary(trends.views),
+            "taps": self.trendMetricAsDictionary(trends.taps),
+            "engagement": self.trendMetricAsDictionary(trends.engagement)
+        ]
+    }
+
+    private func trendMetric(from data: DNSDataDictionary) -> TrendMetric {
+        return TrendMetric(
+            current: self.double(from: data["current"] as Any?) ?? 0,
+            previous: self.double(from: data["previous"] as Any?) ?? 0,
+            change: self.double(from: data["change"] as Any?) ?? 0,
+            direction: self.string(from: data["direction"] as Any?) ?? "up"
+        )
+    }
+
+    private func trendMetricAsDictionary(_ metric: TrendMetric) -> DNSDataDictionary {
+        return [
+            "current": metric.current,
+            "previous": metric.previous,
+            "change": metric.change,
+            "direction": metric.direction
         ]
     }
 }
